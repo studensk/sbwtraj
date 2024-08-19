@@ -30,7 +30,7 @@ download_met_files <- function(days,
     dir.create(met_dir)
   }
 
-  metfiles <- paste0(met_dir, '/', list.files(met_dir))
+  metfiles <- paste0(met_dir, '/', list.files(met_dir, pattern = 't00z.namsa'))
   metfile_sizes <- file.info(metfiles)$size
   true_sizes <- sort(unique(metfile_sizes), decreasing = TRUE)[1:2]
   min_size <- min(true_sizes)
