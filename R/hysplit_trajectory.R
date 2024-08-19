@@ -2,21 +2,24 @@ library(tidyverse)
 library(parallel)
 library(lutz)
 
-source('code/util_file.R')
-source('code/met_utils.R')
+# source('code/util_file.R')
+# source('code/met_utils.R')
 
-
-cfg <- list(KMSL = 0,
-            tm_tpot = 1,
-            tm_tamb = 1,
-            tm_rain = 1,
-            tm_mixd = 1,
-            tm_relh = 1,
-            tm_terr = 1,
-            tm_dswf = 1,
-            vbug=2.5)
 
 ## Make sure the "days" variable is in Date format
+#' Download Meteorology Files
+#'
+#' @param days Dates for which to pull meteorology data
+#' @param duration Duration of desired HYSPLIT run; determines how many dates
+#' before/after "days" are pulled
+#' @param direction Direction of desired HYSPLIT run; determines whether to pull
+#' additional days before or after "days"
+#' @param met_dir Path to directory where meteorology files are to be written
+#'
+#' @return Returns names of met files; downloads necessary meteorology files.
+#' @export
+#'
+#' @examples
 download_met_files <- function(days,
                                duration,
                                direction,
@@ -53,6 +56,36 @@ download_met_files <- function(days,
 ##
 ## if not using run_df, it's assumed that all of the times are in GMT
 
+#' Calculate HYSPLIT Trajectories
+#'
+#' @param run_df A data frame whose rows contain the information for each
+#' trajectory run. This data frame should contain the following columns: "lat",
+#' "lon", "height", "date" and "hour"
+#' @param lat Latitude
+#' @param lon Longitude
+#' @param height Dispersal altitude
+#' @param duration Number of hours for the trajectories to run
+#' @param days Dates for the trajectory runs (as character or Date)
+#' @param daily_hours Starting hours for the trajectory (numeric)
+#' @param direction One of "forward" or "backward", denoting the direction of
+#' the HYSPLIT run
+#' @param vert_motion
+#' @param model_height
+#' @param extended_met TRUE or FALSE; should extra meteorological columns be
+#' included in the output?
+#' @param vbug Moth velocity
+#' @param traj_name Name of output folder
+#' @param binary_path1
+#' @param met_dir Path to directory containing downloaded meteorological data
+#' @param exec_dir Location of main directory
+#' @param clean_up TRUE or FALSE; delete all run folders on completion?
+#' @param local_time TRUE or FALSE; the input times are local relative to the
+#' input latitude and longitude. If FALSE, it is assumed that times are in GMT.
+#'
+#' @return
+#' @export
+#'
+#' @examples
 hysplit_trajectory <- function(run_df = NULL,
                                lat = NULL,
                                lon = NULL,
@@ -64,8 +97,7 @@ hysplit_trajectory <- function(run_df = NULL,
                                vert_motion = 0,
                                model_height = 20000,
                                extended_met = TRUE,
-                               config = cfg,
-                               ascdata = NULL,
+                               vbug = 2.5,
                                traj_name = NULL,
                                binary_path1 = NULL,
                                met_dir = paste0(getwd(), '/meteorology'),
@@ -73,7 +105,15 @@ hysplit_trajectory <- function(run_df = NULL,
                                clean_up = TRUE,
                                local_time = FALSE) {
 
-
+  cfg <- list(KMSL = 0,
+              tm_tpot = 1,
+              tm_tamb = 1,
+              tm_rain = 1,
+              tm_mixd = 1,
+              tm_relh = 1,
+              tm_terr = 1,
+              tm_dswf = 1,
+              vbug=vbug)
 
   # If the execution dir isn't specified, use the working directory
   if (is.null(exec_dir)) exec_dir <- getwd()
@@ -122,11 +162,13 @@ hysplit_trajectory <- function(run_df = NULL,
     config_list <- config
   }
 
-  if (is.null(ascdata)) {
-    ascdata_list <- set_ascdata()
-  } else {
-    ascdata_list <- ascdata
-  }
+  # if (is.null(ascdata)) {
+  #   ascdata_list <- set_ascdata()
+  # } else {
+  #   ascdata_list <- ascdata
+  # }
+
+  ascdata_list <- set_ascdata()
 
   # Modify the default `SETUP.CFG` file when the option for extended
   # meteorology is `TRUE`
@@ -198,8 +240,8 @@ hysplit_trajectory <- function(run_df = NULL,
   clusterEvalQ(cl, {
     library(tidyverse)
 
-    source('code/util_file.R')
-    source('code/met_utils.R')
+    source('util_file.R')
+    source('met_utils.R')
   })
   clusterExport(cl, c('receptors_tbl',
                       'exec_dir', 'duration', 'direction',

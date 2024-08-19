@@ -1,11 +1,11 @@
-library(tidyverse)
+#library(tidyverse)
 
 #' Read a `listing` file
 #' @param file_path The path to the `listing` file.
 #'
 #' @noRd
 read_listing_file <- function(file_path) {
-  
+
   as.vector(
     utils::read.table(
       file = file_path,
@@ -19,7 +19,7 @@ read_listing_file <- function(file_path) {
 #'
 #' @noRd
 hysplit_config_init <- function(dir) {
-  
+
   # Default `SETUP.CFG` configuration file
   cat(
     "&SETUP",
@@ -75,7 +75,7 @@ hysplit_config_init <- function(dir) {
     sep = "\n",
     file = paste0(dir, "/", "SETUP.CFG")
   )
-  
+
   # Default `ASCDATA.CFG` file
   cat(
     "-90.0  -180.0  lat/lon of lower left corner (last record in file)",
@@ -131,13 +131,13 @@ is_64bit_system <- function() {
 #'
 #' @noRd
 to_null_dev <- function(system_type) {
-  
+
   if (system_type %in% c("mac", "unix")) {
     null_dev <- ">> /dev/null 2>&1"
   } else if (system_type == "win") {
     null_dev <- "> NUL 2>&1"
   }
-  
+
   null_dev
 }
 
@@ -145,7 +145,7 @@ to_null_dev <- function(system_type) {
 #'
 #' @noRd
 execute_on_system <- function(sys_cmd, system_type) {
-  
+
   if (system_type %in% c("mac", "unix")) {
     system(sys_cmd)
   } else if (system_type == "win") {
@@ -158,17 +158,17 @@ execute_on_system <- function(sys_cmd, system_type) {
 #' @noRd
 set_binary_path <- function(binary_path,
                             binary_name) {
-  
+
   # By default, binary names should be either:
   #  - hyts_std (trajectory models)
   #  - hycs_std (dispersion models)
-  
+
   # If a user uses another binary name, the path to it should also be specified
-  
+
   if (is.null(binary_path)) {
-    
+
     system_os <- get_os()
-    
+
     if (system_os == "mac") {
       binary_path <-
         system.file(
@@ -176,7 +176,7 @@ set_binary_path <- function(binary_path,
           package = "splitr"
         )
     }
-    
+
     if (system_os == "unix") {
       binary_path <-
         system.file(
@@ -184,7 +184,7 @@ set_binary_path <- function(binary_path,
           package = "splitr"
         )
     }
-    
+
     if (system_os == "win") {
       binary_path <-
         system.file(
@@ -195,7 +195,7 @@ set_binary_path <- function(binary_path,
   } else {
     binary_path <- paste0(binary_path, binary_name)
   }
-  
+
   binary_path
 }
 
@@ -206,14 +206,14 @@ set_binary_path <- function(binary_path,
 create_file_list <- function(output_folder,
                              create_file = TRUE,
                              file_name = "file_list.txt") {
-  
+
   # List files from the specified archive folder
   file_list <-
     list.files(
       path = output_folder,
       pattern = "traj.*"
     )
-  
+
   # Create file list in the output folder
   cat(
     file_list,
@@ -221,12 +221,12 @@ create_file_list <- function(output_folder,
     sep = '\n',
     append = FALSE
   )
-  
+
   file_list
 }
 
 to_short_year <- function(date) {
-  
+
   date %>%
     lubridate::year() %>%
     as.character() %>%
@@ -234,7 +234,7 @@ to_short_year <- function(date) {
 }
 
 to_short_month <- function(date) {
-  
+
   formatC(
     date %>% lubridate::month(),
     width = 2, flag = "0"
@@ -242,7 +242,7 @@ to_short_month <- function(date) {
 }
 
 to_short_day <- function(date) {
-  
+
   formatC(
     date %>% lubridate::day(),
     width = 2, flag = "0"
@@ -262,7 +262,7 @@ get_traj_output_filename <- function(traj_name,
                                      lon,
                                      height,
                                      duration) {
-  
+
   paste0(
     "traj-",
     ifelse(is.null(traj_name), "", traj_name),
@@ -291,7 +291,7 @@ get_disp_output_filename <- function(disp_name,
                                      lon,
                                      height,
                                      duration) {
-  
+
   paste0(
     "disp-",
     ifelse(is.null(disp_name), "", disp_name),
@@ -310,7 +310,7 @@ get_disp_output_filename <- function(disp_name,
 
 get_receptor_values <- function(receptors_tbl,
                                 receptor_i) {
-  
+
   receptors_tbl[receptor_i, ] %>% as.list()
 }
 
@@ -322,17 +322,17 @@ get_receptor_values <- function(receptors_tbl,
 #'   function.
 #' @noRd
 tidy_gsub <- function(x, pattern, replacement, fixed = FALSE) {
-  
+
   gsub(pattern, replacement, x, fixed = fixed)
 }
 
 tidy_sub <- function(x, pattern, replacement, fixed = FALSE) {
-  
+
   sub(pattern, replacement, x, fixed = fixed)
 }
 
 tidy_grepl <- function(x, pattern) {
-  
+
   vapply(
     pattern,
     FUN = function(pattern) {
@@ -344,7 +344,7 @@ tidy_grepl <- function(x, pattern) {
 }
 
 traj_output_files <- function() {
-  
+
   c(
     "ASCDATA.CFG",
     "CONTROL",
@@ -356,7 +356,7 @@ traj_output_files <- function() {
 }
 
 disp_output_files <- function() {
-  
+
   c(
     "ASCDATA.CFG",
     "CONC.CFG",
@@ -371,13 +371,13 @@ disp_output_files <- function() {
 }
 
 check_start_day <- function(start_day) {
-  
+
   # Stop if `start_day` isn't a length 1 vector
   if (length(start_day) != 1) {
     stop("The value provided to `start_day` must be a single value.",
          call. = FALSE)
   }
-  
+
   if (!(inherits(start_day, "character") |
         inherits(start_day, "Date") |
         inherits(start_day, "POSIXct"))) {
@@ -428,39 +428,39 @@ set_config <- function(tratio = 0.75,
                        tm_tpot = 0,
                        tm_tamb = 0,
                        tm_rain = 0,
-                       tm_mixd = 0, 
+                       tm_mixd = 0,
                        tm_relh = 0,
                        tm_sphu = 0,
                        tm_mixr = 0,
                        tm_dswf = 0,
                        tm_terr = 0) {
-  
+
   arg_names <- formals(set_config) %>% names()
   arg_vals <- mget(arg_names)
-  
+
   if (is.null(arg_vals$efile)) {
     arg_vals$efile <- "''"
   } else if (!is.null(arg_vals$efile)) {
     arg_vals$efile <- paste0("'", arg_vals$efile, "'")
   }
-  
+
   if (is.null(arg_vals$pinpf)) {
     arg_vals$pinpf <- "''"
   } else if (!is.null(arg_vals$pinpf)) {
     arg_vals$pinpf <- paste0("'", arg_vals$pinpf, "'")
   }
-  
+
   if (is.null(arg_vals$poutf)) {
     arg_vals$poutf <- "''"
   } else if (!is.null(arg_vals$poutf)) {
     arg_vals$poutf <- paste0("'", arg_vals$poutf, "'")
   }
-  
+
   arg_vals[!vapply(arg_vals, FUN = is.null, FUN.VALUE = logical(1))]
 }
 
 write_config_list <- function(config_list, dir) {
-  
+
   paste0(
     "&SETUP\n",
     paste0(names(config_list), " = ", config_list, ",\n", collapse = ""),
@@ -475,24 +475,24 @@ set_ascdata <- function(lat_lon_ll = c(-90.0, -180.0),
                         lu_category = 2,
                         roughness_l = 0.2,
                         data_dir = "'.'") {
-  
+
   arg_names <- formals(set_ascdata) %>% names()
   arg_vals <- mget(arg_names)
-  
-  arg_vals$lat_lon_ll <- 
+
+  arg_vals$lat_lon_ll <-
     paste0(arg_vals$lat_lon_ll[1], "  ", arg_vals$lat_lon_ll[2])
-  
-  arg_vals$lat_lon_spacing <- 
+
+  arg_vals$lat_lon_spacing <-
     paste0(arg_vals$lat_lon_spacing[1], "  ", arg_vals$lat_lon_spacing[2])
-  
-  arg_vals$lat_lon_n <- 
+
+  arg_vals$lat_lon_n <-
     paste0(arg_vals$lat_lon_n[1], "  ", arg_vals$lat_lon_n[2])
-  
+
   arg_vals[!vapply(arg_vals, FUN = is.null, FUN.VALUE = logical(1))]
 }
 
 write_ascdata_list <- function(ascdata_list, dir) {
-  
+
   paste0(ascdata_list, "\n", collapse = "") %>%
     cat(file = file.path(dir, "ASCDATA.CFG"))
 }
@@ -521,7 +521,7 @@ write_traj_control_file <- function(start_year_GMT,
                                     system_type,
                                     met_dir,
                                     exec_dir) {
-  
+
   paste0(
     start_year_GMT, " ", start_month_GMT, " ",
     start_day_GMT, " ", start_hour_GMT, "\n",
@@ -554,15 +554,15 @@ write_traj_control_file <- function(start_year_GMT,
 #'     output_folder = "traj--2015-06-16--23-58-44")
 #' }
 #' @export
-trajectory_read <- function(output_folder) {  
-  
+trajectory_read <- function(output_folder) {
+
   # Get file list for trajectories from the specified folder
-  trajectory_file_list <- 
+  trajectory_file_list <-
     list.files(
       path = output_folder,
       pattern = "^traj-.*"
     )
-  
+
   # Initialize empty tibble with 12 columns
   traj_tbl <-
     dplyr::tibble(
@@ -573,38 +573,38 @@ trajectory_read <- function(output_folder) {
       hour = integer(0),
       hour_along = integer(0),
       lat = numeric(0),
-      lon = numeric(0), 
+      lon = numeric(0),
       height = numeric(0),
       pressure = numeric(0),
       traj_dt = lubridate::as_datetime("2015-01-01")[-1],
       traj_dt_i = lubridate::as_datetime("2015-01-01")[-1]
     )
-  
-  extended_col_names <- 
+
+  extended_col_names <-
     c(
       "year", "month", "day", "hour", "hour_along",
       "lat", "lon", "height", "pressure",
-      "theta", "air_temp", "rainfall", "mixdepth", "rh", "sp_humidity", 
+      "theta", "air_temp", "rainfall", "mixdepth", "rh", "sp_humidity",
       "h2o_mixrate", "terr_msl", "sun_flux"
     )
-  
-  standard_col_names <- 
+
+  standard_col_names <-
     c(
       "year", "month", "day", "hour", "hour_along",
       "lat", "lon", "height", "pressure"
     )
-  
+
   # Process all trajectory files
   for (ind_i in seq(trajectory_file_list)) {
     file_i <- trajectory_file_list[ind_i]
-    
+
     file_i_path <- file.path(output_folder, file_i)
-    
+
     file_lines <- readLines(file_i_path, encoding = "UTF-8", skipNul = TRUE)
-    
+
     file_one_line <- readr::read_file(file_i_path)
-    
-    header_line <- 
+
+    header_line <-
       file_lines %>%
       vapply(
         FUN.VALUE = logical(1),
@@ -612,19 +612,19 @@ trajectory_read <- function(output_folder) {
         function(x) tidy_grepl(x, "PRESSURE")
       ) %>%
       which()
-    
-    file_lines_data <- 
+
+    file_lines_data <-
       file_lines[(header_line + 1):(length(file_lines))] %>%
       tidy_gsub("\\s\\s*", " ") %>%
       tidy_gsub("^ ", "")
-    
+
     if (!file_one_line %>% tidy_grepl("AIR_TEMP")) {
-      
+
       #
       # Standard meteorology
       #
-      
-      traj_tbl_i <- 
+
+      traj_tbl_i <-
         file_lines_data %>%
         strsplit("\\s+") %>%
         lapply(
@@ -638,7 +638,7 @@ trajectory_read <- function(output_folder) {
         ) %>%
         dplyr::bind_rows() %>%
         dplyr::mutate_at(
-          .vars = dplyr::vars(year, month, day, hour, hour_along), 
+          .vars = dplyr::vars(year, month, day, hour, hour_along),
           .funs = as.integer
         ) %>%
         dplyr::mutate(year_full = ifelse(year < 50, year + 2000, year + 1900)) %>%
@@ -647,24 +647,24 @@ trajectory_read <- function(output_folder) {
         dplyr::mutate(traj_dt = lubridate::ymd_h(date_h_str)) %>%
         dplyr::select(-c(date_h_str, date_str, year_full)) %>%
         dplyr::mutate(traj_dt_i = traj_dt[1])
-      
+
       traj_tbl <- traj_tbl %>% dplyr::bind_rows(traj_tbl_i)
     }
-    
+
     if (file_one_line %>% tidy_grepl("AIR_TEMP")) {
-      
+
       #
       # Extended meteorology
       #
-      
-      file_lines_data_20 <- 
+
+      file_lines_data_20 <-
         file_lines_data %>%
         vapply(
           FUN.VALUE = logical(1),
           USE.NAMES = FALSE,
           function(x) {
             tidy_grepl(
-              x, 
+              x,
               paste0(
                 "^",
                 rep("[0-9\\.-]*?", 20) %>% paste(collapse = " "),
@@ -673,15 +673,15 @@ trajectory_read <- function(output_folder) {
             )
           }
         )
-      
-      file_lines_data_02 <- 
+
+      file_lines_data_02 <-
         file_lines_data %>%
         vapply(
           FUN.VALUE = logical(1),
           USE.NAMES = FALSE,
           function(x) {
             tidy_grepl(
-              x, 
+              x,
               paste0(
                 "^",
                 rep("[0-9\\.-]*?", 2) %>% paste(collapse = " "),
@@ -690,8 +690,8 @@ trajectory_read <- function(output_folder) {
             )
           }
         )
-      
-      traj_tbl_i <- 
+
+      traj_tbl_i <-
         #paste(file_lines_data[file_lines_data_20], file_lines_data[file_lines_data_02]) %>%
         file_lines_data %>%
         strsplit("\\s+") %>%
@@ -706,7 +706,7 @@ trajectory_read <- function(output_folder) {
         ) %>%
         dplyr::bind_rows() %>%
         dplyr::mutate_at(
-          .vars = dplyr::vars(year, month, day, hour, hour_along), 
+          .vars = dplyr::vars(year, month, day, hour, hour_along),
           .funs = as.integer
         ) %>%
         dplyr::mutate(year_full = ifelse(year < 50, year + 2000, year + 1900)) %>%
@@ -721,7 +721,7 @@ trajectory_read <- function(output_folder) {
           hour_i = hour[1],
           traj_dt_i = traj_dt[1])
       traj_tbl_i$receptor <- ind_i
-      
+
       traj_tbl <- traj_tbl %>% dplyr::bind_rows(traj_tbl_i)
     }
   }
