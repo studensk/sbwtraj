@@ -105,7 +105,7 @@ hysplit_trajectory <- function(run_df = NULL,
                                clean_up = TRUE,
                                local_time = FALSE) {
 
-  cfg <- list(KMSL = 0,
+  config <- list(KMSL = 0,
               tm_tpot = 1,
               tm_tamb = 1,
               tm_rain = 1,
