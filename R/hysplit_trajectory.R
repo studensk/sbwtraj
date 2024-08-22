@@ -117,7 +117,6 @@ hysplit_trajectory <- function(run_df = NULL,
 
   # If the execution dir isn't specified, use the working directory
   if (is.null(exec_dir)) exec_dir <- getwd()
-
   # If the meteorology dir isn't specified, use the working directory
   if (is.null(met_dir)) met_dir <- paste0(getwd(), '/meteorology')
 
@@ -189,17 +188,17 @@ hysplit_trajectory <- function(run_df = NULL,
   print('met cleared')
   # Write the config and ascdata lists to files in
   # the `exec` directory
-  config_list %>% write_config_list(dir = exec_dir)
-  ascdata_list %>% write_ascdata_list(dir = exec_dir)
+  # config_list %>% write_config_list(dir = exec_dir)
+  # ascdata_list %>% write_ascdata_list(dir = exec_dir)
 
+
+  ##  Generate a tibble of receptor sites
   # Stop function if there are vectors of different
   # length for `lat` and `lon`
-  if (length(lat) != length(lon)) {
-    stop("The coordinate vectors are not the same length.", call. = FALSE)
-  }
-
-  # Generate a tibble of receptor sites
   if (is.null(run_df)) {
+    if (length(lat) != length(lon)) {
+      stop("The coordinate vectors are not the same length.", call. = FALSE)
+    }
     receptors_tbl <-
       dplyr::tibble(lat = lat, lon = lon) %>%
       dplyr::group_by(lat, lon) %>%
