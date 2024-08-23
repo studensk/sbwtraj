@@ -242,11 +242,16 @@ hysplit_trajectory <- function(run_df = NULL,
     source('util_file.R')
     source('met_utils.R')
   })
-  clusterExport(cl, c('receptors_tbl',
-                      'exec_dir', 'duration', 'direction',
-                      'traj_name', 'vert_motion', 'model_height', 'receptors',
-                      'system_type', 'met_dir', 'binary_path', 'folder_name',
-                      'config_list', 'ascdata_list', 'recep_file_path'),
+  clusterExport(cl, c("receptors_tbl", "exec_dir", "duration",
+                      "direction", "traj_name", "vert_motion", "model_height",
+                      "receptors", "system_type", "met_dir", "binary_path",
+                      "folder_name", "config_list", "ascdata_list",
+                      "recep_file_path", 'write_config_list',
+                      'write_ascdata_list', 'get_receptor_values',
+                      'get_daily_filenames', 'to_short_year', 'to_short_month',
+                      'to_short_day', 'formatC', 'get_traj_output_filename',
+                      'write_traj_control_file', 'to_null_dev',
+                      'execute_on_system'),
                 envir = environment())
   print('clusters initialized')
   traj.lst <- parLapply(cl, receptors, function(receptor) {
