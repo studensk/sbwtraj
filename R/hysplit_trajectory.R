@@ -238,9 +238,6 @@ hysplit_trajectory <- function(run_df = NULL,
   cl <- makeCluster(clusters)
   clusterEvalQ(cl, {
     library(tidyverse)
-
-    source('util_file.R')
-    source('met_utils.R')
   })
   clusterExport(cl, c("receptors_tbl", "exec_dir", "duration",
                       "direction", "traj_name", "vert_motion", "model_height",
