@@ -35,7 +35,14 @@ download_met_files <- function(days,
   true_sizes <- sort(unique(metfile_sizes), decreasing = TRUE)[1:2]
   min_size <- min(true_sizes)
   small_file_inds <- which(metfile_sizes < min_size)
-  file.remove(metfiles[small_file_inds])
+  #file.remove(metfiles[small_file_inds])
+  if (length(small_file_inds) > 0) {
+    warning(paste0('Meteorology directory contains ',
+            length(small_file_inds),
+            ' met files which are smaller than ',
+            min_size/1000,
+            'KB. PLEASE check that all met files are complete before proceeding!!'))
+  }
 
   get_daily_filenames(
     days = days,

@@ -79,7 +79,7 @@ get_met_files <- function(files, path_met_files, ftp_dir) {
   # Determine which met files are already locally available
   files_in_path <- list.files(path_met_files)
 
-  # Download list of GFS0.25 met files by name
+  # Download list of met files by name
   if (!is.null(files)) {
 
     for (file in files) {
