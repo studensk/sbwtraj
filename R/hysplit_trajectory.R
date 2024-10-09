@@ -124,8 +124,15 @@ hysplit_trajectory <- function(run_df = NULL,
 
   # If the execution dir isn't specified, use the working directory
   if (is.null(exec_dir)) exec_dir <- getwd()
+  else {
+    if (!dir.exists(exec_dir)) {dir.create(exec_dir)}
+  }
+
   # If the meteorology dir isn't specified, use the working directory
   if (is.null(met_dir)) met_dir <- paste0(getwd(), '/meteorology')
+  else {
+    if (!dir.exists(met_dir)) {dir.create(met_dir)}
+  }
 
   if (!is.null(run_df)) {days <- unique(run_df$date)}
 
