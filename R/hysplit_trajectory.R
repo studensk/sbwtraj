@@ -124,8 +124,15 @@ hysplit_trajectory <- function(run_df = NULL,
 
   # If the execution dir isn't specified, use the working directory
   if (is.null(exec_dir)) exec_dir <- getwd()
+  else {
+    if (!dir.exists(exec_dir)) {dir.create(exec_dir)}
+  }
+
   # If the meteorology dir isn't specified, use the working directory
   if (is.null(met_dir)) met_dir <- paste0(getwd(), '/meteorology')
+  else {
+    if (!dir.exists(met_dir)) {dir.create(met_dir)}
+  }
 
   if (!is.null(run_df)) {days <- unique(run_df$date)}
 
@@ -178,20 +185,20 @@ hysplit_trajectory <- function(run_df = NULL,
 
   # Modify the default `SETUP.CFG` file when the option for extended
   # meteorology is `TRUE`
-  if (isTRUE(extended_met)) {
-
-    tm_names <-
-      config_list %>%
-      names() %>%
-      vapply(
-        FUN.VALUE = logical(1),
-        USE.NAMES = FALSE,
-        FUN = function(y) y %>% tidy_grepl("^tm_")
-      ) %>%
-      which()
-
-    config_list[tm_names] <- 1
-  }
+  # if (isTRUE(extended_met)) {
+  #
+  #   tm_names <-
+  #     config_list %>%
+  #     names() %>%
+  #     vapply(
+  #       FUN.VALUE = logical(1),
+  #       USE.NAMES = FALSE,
+  #       FUN = function(y) y %>% tidy_grepl("^tm_")
+  #     ) %>%
+  #     which()
+  #
+  #   config_list[tm_names] <- 1
+  # }
   print('met cleared')
   # Write the config and ascdata lists to files in
   # the `exec` directory

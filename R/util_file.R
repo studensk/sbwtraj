@@ -498,13 +498,6 @@ write_ascdata_list <- function(ascdata_list, dir) {
 }
 
 
-
-
-
-
-
-
-
 write_traj_control_file <- function(start_year_GMT,
                                     start_month_GMT,
                                     start_day_GMT,
