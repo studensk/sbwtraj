@@ -189,7 +189,8 @@ set_binary_path <- function(binary_path,
       binary_path <-
         system.file(
           file.path("win", paste0(binary_name, ".exe")),
-          package = "splitr"
+          #package = "splitr"
+          package = "sbwtraj"
         )
     }
   } else {
