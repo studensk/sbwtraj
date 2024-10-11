@@ -443,7 +443,7 @@ hysplit_trajectory <- function(run_df = NULL,
     dplyr::select(run, dplyr::everything())
   if (write_df) {
     write.csv(ensemble_tbl,
-              paste0(exec.dir, '/', folder_name, '.csv'),
+              paste0(exec_dir, '/', folder_name, '.csv'),
               row.names = FALSE)
   }
 
