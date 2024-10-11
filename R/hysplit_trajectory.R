@@ -110,7 +110,8 @@ hysplit_trajectory <- function(run_df = NULL,
                                met_dir = paste0(getwd(), '/meteorology'),
                                exec_dir = NULL,
                                clean_up = TRUE,
-                               local_time = FALSE) {
+                               local_time = FALSE,
+                               write_df = TRUE) {
 
   config <- list(KMSL = 0,
               tm_tpot = 1,
@@ -440,6 +441,12 @@ hysplit_trajectory <- function(run_df = NULL,
       by = c("receptor", "traj_dt_i", "lat_i", "lon_i", "height_i")
     ) %>%
     dplyr::select(run, dplyr::everything())
+  if (write_df) {
+    write.csv(ensemble_tbl,
+              paste0(exec.dir, '/', folder_name, '.csv'),
+              row.names = FALSE)
+  }
+
   return(ensemble_tbl)
 }
 
