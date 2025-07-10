@@ -38,10 +38,10 @@ download_met_files <- function(days,
   #file.remove(metfiles[small_file_inds])
   if (length(small_file_inds) > 0) {
     warning(paste0('Meteorology directory contains ',
-            length(small_file_inds),
-            ' met files which are smaller than ',
-            min_size/1000,
-            'KB. PLEASE check that all met files are complete before proceeding!!'))
+                   length(small_file_inds),
+                   ' met files which are smaller than ',
+                   min_size/1000,
+                   'KB. PLEASE check that all met files are complete before proceeding!!'))
   }
 
   get_daily_filenames(
@@ -114,14 +114,20 @@ hysplit_trajectory <- function(run_df = NULL,
                                write_df = TRUE) {
 
   config <- list(KMSL = 0,
-              tm_tpot = 1,
-              tm_tamb = 1,
-              tm_rain = 1,
-              tm_mixd = 1,
-              tm_relh = 1,
-              tm_terr = 1,
-              tm_dswf = 1,
-              vbug=vbug)
+                 tm_tpot = 1,
+                 tm_tamb = 1,
+                 tm_rain = 1,
+                 tm_mixd = 1,
+                 tm_relh = 1,
+                 tm_terr = 1,
+                 tm_dswf = 1,
+                 vbug=vbug)
+
+  run_df <- run_df %>%
+    select(hour, date) %>%
+    unique() %>%
+    mutate(receptor = row_number()) %>%
+    merge(run_df)
 
   # If the execution dir isn't specified, use the working directory
   if (is.null(exec_dir)) exec_dir <- getwd()
@@ -186,20 +192,20 @@ hysplit_trajectory <- function(run_df = NULL,
 
   # Modify the default `SETUP.CFG` file when the option for extended
   # meteorology is `TRUE`
-  if (isTRUE(extended_met)) {
-
-    tm_names <-
-      config_list %>%
-      names() %>%
-      vapply(
-        FUN.VALUE = logical(1),
-        USE.NAMES = FALSE,
-        FUN = function(y) y %>% tidy_grepl("^tm_")
-      ) %>%
-      which()
-
-    config_list[tm_names] <- 1
-  }
+  # if (isTRUE(extended_met)) {
+  #
+  #   tm_names <-
+  #     config_list %>%
+  #     names() %>%
+  #     vapply(
+  #       FUN.VALUE = logical(1),
+  #       USE.NAMES = FALSE,
+  #       FUN = function(y) y %>% tidy_grepl("^tm_")
+  #     ) %>%
+  #     which()
+  #
+  #   config_list[tm_names] <- 1
+  # }
   print('met cleared')
   # Write the config and ascdata lists to files in
   # the `exec` directory
@@ -226,8 +232,9 @@ hysplit_trajectory <- function(run_df = NULL,
   else {
     receptors_tbl <- run_df %>%
       dplyr::as_tibble() %>%
-      dplyr::mutate(receptor = dplyr::row_number()) %>%
-      dplyr::select(receptor, dplyr::everything())
+      #dplyr::mutate(receptor = dplyr::row_number()) %>%
+      dplyr::select(receptor, dplyr::everything()) %>%
+      arrange(receptor)
 
   }
 
@@ -242,7 +249,7 @@ hysplit_trajectory <- function(run_df = NULL,
   }
 
   # Get vector of receptor indices
-  receptors <- seq(nrow(receptors_tbl))
+  receptors <- unique(receptors_tbl$receptor)
 
   cores <- parallel::detectCores()
   max_clusters <- floor(cores*2/3)
@@ -251,9 +258,7 @@ hysplit_trajectory <- function(run_df = NULL,
 
   print('initialize clusters')
   cl <- makeCluster(clusters)
-  clusterEvalQ(cl, {
-    library(tidyverse)
-  })
+
   clusterExport(cl, c("receptors_tbl", "exec_dir", "duration",
                       "direction", "traj_name", "vert_motion", "model_height",
                       "receptors", "system_type", "met_dir", "binary_path",
@@ -265,10 +270,14 @@ hysplit_trajectory <- function(run_df = NULL,
                       'write_traj_control_file', 'to_null_dev',
                       'execute_on_system'),
                 envir = environment())
+  clusterEvalQ(cl, {
+    library(tidyverse)
+    receptors <- unique(receptors_tbl$receptor)
+  })
   print('clusters initialized')
-  traj.lst <- parLapply(cl, receptors, function(receptor) {
+  traj.lst <- parLapply(cl, receptors, function(ind) {
 
-    inner_folder <- paste0('receptor', receptor)
+    inner_folder <- paste0('receptor', ind)
     inner_dir <- file.path(exec_dir, inner_folder)
     if (!dir.exists(inner_dir)) {
       dir.create(inner_dir)
@@ -280,7 +289,7 @@ hysplit_trajectory <- function(run_df = NULL,
     receptor_vals <-
       get_receptor_values(
         receptors_tbl = receptors_tbl,
-        receptor_i = receptor
+        receptor_i = ind
       )
 
     receptor_i <- receptor_vals$receptor
@@ -319,9 +328,9 @@ hysplit_trajectory <- function(run_df = NULL,
         month = start_month_GMT,
         day = start_day_GMT,
         hour = start_hour_GMT,
-        lat = lat_i,
-        lon = lon_i,
-        height = height_i,
+        lat = lat_i[1],
+        lon = lon_i[1],
+        height = height_i[1],
         duration = duration
       )
 
@@ -402,6 +411,7 @@ hysplit_trajectory <- function(run_df = NULL,
     traj_tbl %>%
     dplyr::select(-c(year, month, day, hour)) %>%
     dplyr::select(
+      traj_ind,
       receptor,
       hour_along,
       traj_dt,
@@ -415,7 +425,8 @@ hysplit_trajectory <- function(run_df = NULL,
       dplyr::everything()
     ) %>%
     dplyr::group_by(
-      receptor, hour_along, traj_dt, traj_dt_i, lat_i, lon_i, height_i) %>%
+      traj_ind, receptor, hour_along, traj_dt, traj_dt_i,
+      lat_i, lon_i, height_i) %>%
     dplyr::slice(1) %>%
     dplyr::ungroup()
 
@@ -423,7 +434,7 @@ hysplit_trajectory <- function(run_df = NULL,
 
     ensemble_tbl <-
       ensemble_tbl %>%
-      dplyr::arrange(receptor, traj_dt_i)
+      dplyr::arrange(receptor, traj_ind, traj_dt_i)
 
   } else {
 

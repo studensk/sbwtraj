@@ -312,7 +312,13 @@ get_disp_output_filename <- function(disp_name,
 get_receptor_values <- function(receptors_tbl,
                                 receptor_i) {
 
-  receptors_tbl[receptor_i, ] %>% as.list()
+  rec <- receptors_tbl %>%
+    subset(receptor == receptor_i) %>%
+    as.list()
+  rec$receptor <- unique(rec$receptor)
+  rec$hour <- unique(rec$hour)
+  rec$date <- unique(rec$date)
+  return(rec)
 }
 
 #' Wrapper for `gsub()` where `x` is the first argument
@@ -499,13 +505,6 @@ write_ascdata_list <- function(ascdata_list, dir) {
 }
 
 
-
-
-
-
-
-
-
 write_traj_control_file <- function(start_year_GMT,
                                     start_month_GMT,
                                     start_day_GMT,
@@ -522,12 +521,17 @@ write_traj_control_file <- function(start_year_GMT,
                                     system_type,
                                     met_dir,
                                     exec_dir) {
-
+  starts <- length(lat)
+  llh <- ''
+  for (i in 1:starts) {
+    llh <- paste0(llh, lat[i], ' ', lon[i], ' ', height[i], '\n')
+  }
   paste0(
     start_year_GMT, " ", start_month_GMT, " ",
     start_day_GMT, " ", start_hour_GMT, "\n",
-    "1\n",
-    lat, " ", lon, " ", height, "\n",
+    starts, "\n",
+    #lat, " ", lon, " ", height, "\n",
+    llh,
     ifelse(direction == "backward", "-", ""), duration, "\n",
     vert_motion, "\n",
     model_height, "\n",
@@ -567,6 +571,7 @@ trajectory_read <- function(output_folder) {
   # Initialize empty tibble with 12 columns
   traj_tbl <-
     dplyr::tibble(
+      traj_ind = integer(0),
       receptor = integer(0),
       year = integer(0),
       month = integer(0),
@@ -582,7 +587,7 @@ trajectory_read <- function(output_folder) {
     )
 
   extended_col_names <-
-    c(
+    c("traj_ind",
       "year", "month", "day", "hour", "hour_along",
       "lat", "lon", "height", "pressure",
       "theta", "air_temp", "rainfall", "mixdepth", "rh", "sp_humidity",
@@ -590,7 +595,7 @@ trajectory_read <- function(output_folder) {
     )
 
   standard_col_names <-
-    c(
+    c("traj_ind",
       "year", "month", "day", "hour", "hour_along",
       "lat", "lon", "height", "pressure"
     )
@@ -630,7 +635,7 @@ trajectory_read <- function(output_folder) {
         strsplit("\\s+") %>%
         lapply(
           FUN = function(x) {
-            x[c(3:6, 9:13)] %>%
+            x[c(1, 3:6, 9:13)] %>%
               as.numeric() %>%
               stats::setNames(standard_col_names) %>%
               as.list() %>%
@@ -698,7 +703,7 @@ trajectory_read <- function(output_folder) {
         strsplit("\\s+") %>%
         lapply(
           FUN = function(x) {
-            x[c(3:6, 9:22)] %>%
+            x[c(1, 3:6, 9:22)] %>%
               as.numeric() %>%
               stats::setNames(extended_col_names) %>%
               as.list() %>%
